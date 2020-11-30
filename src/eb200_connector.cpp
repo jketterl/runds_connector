@@ -106,6 +106,7 @@ int Eb200Connector::send_command(std::string cmd) {
 int Eb200Connector::read() {
     char* buffer = (char*) malloc(sizeof(char) * get_buffer_size());
     char* read_pointer;
+    int16_t* conversion_buffer = (int16_t*) malloc(sizeof(int16_t) * get_buffer_size());
     int read;
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
@@ -153,12 +154,21 @@ int Eb200Connector::read() {
         std::memcpy(&eb200_if_attribute, read_pointer, sizeof(eb200_if_attribute));
         read_pointer += sizeof(eb200_if_attribute);
 
-        processSamples((int16_t*) (read_pointer - 1), ntohs(eb200_if_attribute.number_of_trace_values) * 2);
+        uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
+        ntohs_vector((int16_t*) read_pointer, conversion_buffer, len);
+        processSamples(conversion_buffer,  len);
     }
 
+    free(conversion_buffer);
     free(buffer);
     return 0;
 };
+
+void Eb200Connector::ntohs_vector(int16_t* input, int16_t* output, uint32_t length) {
+    for (int i = 0; i < length; i++) {
+        output[i] = ntohs(input[i]);
+    }
+}
 
 int Eb200Connector::close() {
     if (::close(data_sock) < 0) {
