@@ -193,7 +193,29 @@ int Eb200Connector::set_sample_rate(double sample_rate) {
 };
 
 int Eb200Connector::set_gain(Owrx::GainSpec* gain) {
-    return 0;
+    if (dynamic_cast<Owrx::AutoGainSpec*>(gain) != nullptr) {
+        return send_command("GCON:MODE AGC\r\n");
+    }
+
+    Owrx::SimpleGainSpec* simple_gain;
+    if ((simple_gain = dynamic_cast<Owrx::SimpleGainSpec*>(gain)) != nullptr) {
+        int r = send_command("GCON:MODE FIX\r\n");
+        if (r != 0) {
+            std::cerr << "setting gain mode failed\r\n";
+            return 1;
+        }
+
+        r = send_command("GCON " + std::to_string(simple_gain->getValue()) + "\r\n");
+        if (r != 0) {
+            std::cerr << "setting gain failed\r\n";
+            return 1;
+        }
+
+        return 0;
+    }
+
+    std::cerr << "unsupported gain settings\n";
+    return 100;
 };
 
 int Eb200Connector::set_ppm(int ppm) {
