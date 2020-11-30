@@ -76,8 +76,9 @@ int Eb200Connector::open() {
 
     std::memset(&data_remote, 0, sizeof(data_remote));
     data_remote.sin_family = AF_INET;
-    // TODO automatically get port
-    data_remote.sin_port = htons(6000);
+    // automatically assign port
+    data_remote.sin_port = 0;
+    // TODO: only accept from eb200 IP
     data_remote.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(data_sock, (struct sockaddr*) &data_remote, sizeof(data_remote)) < 0) {
@@ -85,10 +86,19 @@ int Eb200Connector::open() {
         return 1;
     }
 
+    socklen_t len = sizeof(data_remote);
+    if (getsockname(data_sock, (struct sockaddr*) &data_remote, &len) < 0) {
+        std::cerr << "eb200 data socket getsockname error\n";
+        return 1;
+    }
+
+    data_port = ntohs(data_remote.sin_port);
+
     return 0;
 };
 
 int Eb200Connector::send_command(std::string cmd) {
+    std::cerr << "sending command: " << cmd;
     ssize_t len = cmd.size();
     ssize_t sent = send(control_sock, cmd.c_str(), len, 0);
     if (len != sent) return -1;
@@ -116,7 +126,7 @@ int Eb200Connector::read() {
     struct eb200_if_attribute_t eb200_if_attribute;
 
     // TODO automatically fill in IP and port
-    if (send_command("trace:udp:tag:on \"192.168.1.223\",6000,if\r\n") != 0) {
+    if (send_command("trace:udp:tag:on \"192.168.1.223\"," + std::to_string(data_port) + ",if\r\n") != 0) {
         std::cerr << "sending trace command failed\n";
         return 1;
     }

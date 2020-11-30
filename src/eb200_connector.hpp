@@ -19,6 +19,7 @@ class Eb200Connector: public Owrx::Connector {
     private:
         std::string host = "127.0.0.1";
         uint16_t port = 5555;
+        uint16_t data_port;
         int control_sock;
         int data_sock;
 
