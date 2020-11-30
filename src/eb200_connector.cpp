@@ -67,6 +67,14 @@ int Eb200Connector::open() {
         return 2;
     }
 
+    socklen_t len = sizeof(control_remote);
+    if (getsockname(control_sock, (struct sockaddr *) &control_remote, &len) < 0) {
+        std::cerr << "getting local IP failed \n";
+        return 3;
+    }
+
+    local_data_ip = std::string(inet_ntoa(control_remote.sin_addr));
+
     if ((data_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "eb200 data socket creation error: " << data_sock << "\n";
         return 1;
@@ -78,7 +86,6 @@ int Eb200Connector::open() {
     data_remote.sin_family = AF_INET;
     // automatically assign port
     data_remote.sin_port = 0;
-    // TODO: only accept from eb200 IP
     data_remote.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(data_sock, (struct sockaddr*) &data_remote, sizeof(data_remote)) < 0) {
@@ -86,7 +93,7 @@ int Eb200Connector::open() {
         return 1;
     }
 
-    socklen_t len = sizeof(data_remote);
+    len = sizeof(data_remote);
     if (getsockname(data_sock, (struct sockaddr*) &data_remote, &len) < 0) {
         std::cerr << "eb200 data socket getsockname error\n";
         return 1;
@@ -125,9 +132,8 @@ int Eb200Connector::read() {
     struct eb200_generic_attribute_t eb200_generic_attribute;
     struct eb200_if_attribute_t eb200_if_attribute;
 
-    // TODO automatically fill in IP and port
-    if (send_command("trace:udp:tag:on \"192.168.1.223\"," + std::to_string(data_port) + ",if\r\n") != 0) {
-        std::cerr << "sending trace command failed\n";
+    if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
+        std::cerr << "registering trace failed\n";
         return 1;
     }
 
@@ -167,6 +173,11 @@ int Eb200Connector::read() {
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
         ntohs_vector((int16_t*) read_pointer, conversion_buffer, len);
         processSamples(conversion_buffer,  len);
+    }
+
+    if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
+        std::cerr << "deregistering trace failed\n";
+        return 1;
     }
 
     free(conversion_buffer);
