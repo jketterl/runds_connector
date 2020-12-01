@@ -12,6 +12,31 @@ int main (int argc, char** argv) {
     return connector->main(argc, argv);
 }
 
+std::stringstream Eb200Connector::get_usage_string() {
+    std::stringstream s = Owrx::Connector::get_usage_string();
+    s <<
+        " -l, --long              use long (32bit samples) sample size\n";
+    return s;
+}
+
+std::vector<struct option> Eb200Connector::getopt_long_options() {
+    std::vector<struct option> long_options = Owrx::Connector::getopt_long_options();
+    long_options.push_back({"long", no_argument, NULL, 'l'});
+    return long_options;
+}
+
+int Eb200Connector::receive_option(int c, char* optarg) {
+    switch (c) {
+        case 'l':
+            data_mode = "LONG";
+            break;
+        default:
+            return Owrx::Connector::receive_option(c, optarg);
+    }
+    return 0;
+}
+
+
 int Eb200Connector::parse_arguments(int argc, char** argv) {
     int r = Connector::parse_arguments(argc, argv);
     if (r != 0) return r;
@@ -120,7 +145,13 @@ int Eb200Connector::send_command(std::string cmd) {
 }
 
 int Eb200Connector::read() {
-    return read<int32_t>();
+    if (data_mode == "LONG") {
+        return read<int32_t>();
+    } else if (data_mode == "SHORT") {
+        return read<int16_t>();
+    }
+    std::cerr << "unsupported data mode: " << data_mode << "\n";
+    return 1;
 }
 
 template <typename T>
@@ -136,22 +167,12 @@ int Eb200Connector::read() {
     struct eb200_generic_attribute_t eb200_generic_attribute;
     struct eb200_if_attribute_t eb200_if_attribute;
 
-    std::string mode;
-    if (typeid(T) == typeid(int16_t)) {
-        mode = "SHORT";
-    } else if (typeid(T) == typeid(int32_t)) {
-        mode = "LONG";
-    } else {
-        std::cerr << "unsupported type\n";
-        return 1;
-    }
-
     if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
         std::cerr << "registering trace failed\n";
         return 1;
     }
 
-    if (send_command("SYST:IF:REM:MODE " + mode + "\r\n") != 0) {
+    if (send_command("SYST:IF:REM:MODE " + data_mode + "\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
         return 1;
     }

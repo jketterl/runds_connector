@@ -8,6 +8,9 @@ class Eb200Connector: public Owrx::Connector {
         Eb200Connector(): Owrx::Connector::Connector() {};
     protected:
         virtual uint32_t get_buffer_size() override;
+        std::stringstream get_usage_string() override;
+        std::vector<struct option> getopt_long_options() override;
+        int receive_option(int c, char* optarg) override;
         virtual int parse_arguments(int argc, char** argv) override;
         virtual int open() override;
         virtual int read() override;
@@ -21,6 +24,7 @@ class Eb200Connector: public Owrx::Connector {
         uint16_t port = 5555;
         std::string local_data_ip;
         uint16_t data_port;
+        std::string data_mode = "SHORT";
         int control_sock;
         int data_sock;
 
