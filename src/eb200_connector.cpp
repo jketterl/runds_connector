@@ -123,7 +123,7 @@ int Eb200Connector::send_command(std::string cmd) {
 int Eb200Connector::read() {
     char* buffer = (char*) malloc(sizeof(char) * get_buffer_size());
     char* read_pointer;
-    int16_t* conversion_buffer = (int16_t*) malloc(sizeof(int16_t) * get_buffer_size());
+    int32_t* conversion_buffer = (int32_t*) malloc(sizeof(int32_t) * get_buffer_size());
     int read;
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
@@ -137,7 +137,7 @@ int Eb200Connector::read() {
         return 1;
     }
 
-    if (send_command("SYST:IF:REM:MODE SHORT\r\n") != 0) {
+    if (send_command("SYST:IF:REM:MODE LONG\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
         return 1;
     }
@@ -171,7 +171,7 @@ int Eb200Connector::read() {
         read_pointer += sizeof(eb200_if_attribute);
 
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
-        ntohs_vector((int16_t*) read_pointer, conversion_buffer, len);
+        ntohl_vector((int32_t*) read_pointer, conversion_buffer, len);
         processSamples(conversion_buffer,  len);
     }
 
@@ -186,6 +186,12 @@ int Eb200Connector::read() {
 };
 
 void Eb200Connector::ntohs_vector(int16_t* input, int16_t* output, uint32_t length) {
+    for (int i = 0; i < length; i++) {
+        output[i] = ntohs(input[i]);
+    }
+}
+
+void Eb200Connector::ntohl_vector(int32_t* input, int32_t* output, uint32_t length) {
     for (int i = 0; i < length; i++) {
         output[i] = ntohs(input[i]);
     }
@@ -226,7 +232,7 @@ int Eb200Connector::set_gain(Owrx::GainSpec* gain) {
             return 1;
         }
 
-        r = send_command("GCON " + std::to_string(simple_gain->getValue()) + "\r\n");
+        r = send_command("GCON " + std::to_string((int) simple_gain->getValue()) + "\r\n");
         if (r != 0) {
             std::cerr << "setting gain failed\r\n";
             return 1;
