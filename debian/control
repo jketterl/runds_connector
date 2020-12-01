@@ -1,0 +1,15 @@
+Source: eb200-connector
+Maintainer: Jakob Ketterl <jakob.ketterl@gmx.de>
+Section: hamradio
+Priority: optional
+Standards-Version: 4.2.0
+Build-Depends: debhelper (>= 11), cmake (>= 3), pkg-config, libowrx-connector-dev (>= 0.4)
+Vcs-Browser: https://github.com/jketterl/eb200_connector
+Vcs-Git: https://github.com/jketterl/eb200_connector.git
+
+Package: eb200-connector
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: OpenWebRX connector for the EB200 protocol
+ Provides connector functionality to devices offering the EB200 protocol on
+ the network
