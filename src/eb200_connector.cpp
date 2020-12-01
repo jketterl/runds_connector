@@ -1,6 +1,5 @@
 #include "eb200_connector.hpp"
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <iostream>
@@ -75,12 +74,14 @@ int Eb200Connector::open() {
         return 1;
     }
 
+    host_addr = *((struct in_addr*) hp->h_addr);
+
     struct sockaddr_in control_remote;
 
     std::memset(&control_remote, 0, sizeof(control_remote));
     control_remote.sin_family = AF_INET;
     control_remote.sin_port = htons(port);
-    control_remote.sin_addr = *((struct in_addr *) hp->h_addr);
+    control_remote.sin_addr = host_addr;
 
     if (connect(control_sock, (struct sockaddr *)&control_remote, sizeof(control_remote)) < 0) {
         std::cerr << "eb200 connection failed\n";
@@ -125,6 +126,14 @@ int Eb200Connector::open() {
     }
 
     data_port = ntohs(data_remote.sin_port);
+
+    struct timeval tv;
+    tv.tv_sec = 2;
+    tv.tv_usec = 0;
+    if (setsockopt(data_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        std::cerr << "setting data socket timeout failed\n";
+        return 1;
+    }
 
     return 0;
 };
@@ -179,6 +188,17 @@ int Eb200Connector::read() {
 
     while (run) {
         read = recvfrom(data_sock, buffer, get_buffer_size(), 0, (struct sockaddr*) &cliaddr, &len);
+        if (read < 0) {
+            std::cerr << "ERROR: data socket read error; shutting down\n";
+            run = false;
+            break;
+        }
+
+        if (host_addr.s_addr != cliaddr.sin_addr.s_addr) {
+            std::cerr << "WARNING: discarding data coming from unexpected source (" << inet_ntoa(cliaddr.sin_addr) << ")\n";
+            continue;
+        }
+
         read_pointer = buffer;
         if (read < sizeof(struct eb200_header_t)) {
             std::cerr << "WARNING: incomplete data\n";

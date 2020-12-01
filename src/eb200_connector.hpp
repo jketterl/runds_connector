@@ -2,6 +2,7 @@
 
 #include <owrx/connector.hpp>
 #include <owrx/gainspec.hpp>
+#include <netinet/in.h>
 
 class Eb200Connector: public Owrx::Connector {
     public:
@@ -21,6 +22,7 @@ class Eb200Connector: public Owrx::Connector {
         virtual int set_ppm(int ppm) override;
     private:
         std::string host = "127.0.0.1";
+        struct in_addr host_addr;
         uint16_t port = 5555;
         std::string local_data_ip;
         uint16_t data_port;
