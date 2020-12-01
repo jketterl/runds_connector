@@ -25,8 +25,10 @@ class Eb200Connector: public Owrx::Connector {
         int data_sock;
 
         int send_command(std::string cmd);
-        void ntohs_vector(int16_t* input, int16_t* output, uint32_t length);
-        void ntohl_vector(int32_t* input, int32_t* output, uint32_t length);
+        void convertFromNetwork(int16_t* input, int16_t* output, uint32_t length);
+        void convertFromNetwork(int32_t* input, int32_t* output, uint32_t length);
+        template <typename T>
+        int read();
 };
 
 struct eb200_header_t {

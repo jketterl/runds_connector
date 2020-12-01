@@ -120,9 +120,14 @@ int Eb200Connector::send_command(std::string cmd) {
 }
 
 int Eb200Connector::read() {
+    return read<int32_t>();
+}
+
+template <typename T>
+int Eb200Connector::read() {
     char* buffer = (char*) malloc(sizeof(char) * get_buffer_size());
     char* read_pointer;
-    int32_t* conversion_buffer = (int32_t*) malloc(sizeof(int32_t) * get_buffer_size());
+    T* conversion_buffer = (T*) malloc(sizeof(T) * get_buffer_size());
     int read;
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
@@ -131,12 +136,22 @@ int Eb200Connector::read() {
     struct eb200_generic_attribute_t eb200_generic_attribute;
     struct eb200_if_attribute_t eb200_if_attribute;
 
+    std::string mode;
+    if (typeid(T) == typeid(int16_t)) {
+        mode = "SHORT";
+    } else if (typeid(T) == typeid(int32_t)) {
+        mode = "LONG";
+    } else {
+        std::cerr << "unsupported type\n";
+        return 1;
+    }
+
     if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
         std::cerr << "registering trace failed\n";
         return 1;
     }
 
-    if (send_command("SYST:IF:REM:MODE LONG\r\n") != 0) {
+    if (send_command("SYST:IF:REM:MODE " + mode + "\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
         return 1;
     }
@@ -170,7 +185,7 @@ int Eb200Connector::read() {
         read_pointer += sizeof(eb200_if_attribute);
 
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
-        ntohl_vector((int32_t*) read_pointer, conversion_buffer, len);
+        convertFromNetwork((T*) read_pointer, conversion_buffer, len);
         processSamples(conversion_buffer,  len);
     }
 
@@ -184,15 +199,15 @@ int Eb200Connector::read() {
     return 0;
 };
 
-void Eb200Connector::ntohs_vector(int16_t* input, int16_t* output, uint32_t length) {
+void Eb200Connector::convertFromNetwork(int16_t* input, int16_t* output, uint32_t length) {
     for (int i = 0; i < length; i++) {
         output[i] = ntohs(input[i]);
     }
 }
 
-void Eb200Connector::ntohl_vector(int32_t* input, int32_t* output, uint32_t length) {
+void Eb200Connector::convertFromNetwork(int32_t* input, int32_t* output, uint32_t length) {
     for (int i = 0; i < length; i++) {
-        output[i] = ntohs(input[i]);
+        output[i] = ntohl(input[i]);
     }
 }
 
