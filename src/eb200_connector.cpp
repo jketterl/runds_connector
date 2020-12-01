@@ -105,7 +105,6 @@ int Eb200Connector::open() {
 };
 
 int Eb200Connector::send_command(std::string cmd) {
-    std::cerr << "sending command: " << cmd;
     ssize_t len = cmd.size();
     ssize_t sent = send(control_sock, cmd.c_str(), len, 0);
     if (len != sent) return -1;
