@@ -39,8 +39,8 @@ class Eb200Connector: public Owrx::Connector {
 
 struct eb200_header_t {
     uint32_t magic;
-    uint16_t version_major;
     uint16_t version_minor;
+    uint16_t version_major;
     uint16_t sequence;
     uint16_t reserved;
     uint32_t data_size;
@@ -49,6 +49,13 @@ struct eb200_header_t {
 struct eb200_generic_attribute_t {
     uint16_t tag;
     uint16_t length;
+};
+
+struct eb200_if_attribute_t {
+    int16_t number_of_trace_values;
+    int8_t reserved;
+    uint8_t optional_header_length;
+    uint32_t selector_flags;
 };
 
 struct eb200_if_trace_header_t {
@@ -66,12 +73,4 @@ struct eb200_if_trace_header_t {
     uint32_t freq_high;
     uint8_t reserved_2[4];
     uint64_t start_timestamp;
-};
-
-struct eb200_if_attribute_t {
-    int16_t number_of_trace_values;
-    int8_t reserved;
-    uint8_t optional_header_length;
-    uint32_t selector_flags;
-    struct eb200_if_trace_header_t if_trace_header;
 };

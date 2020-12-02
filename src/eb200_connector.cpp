@@ -225,6 +225,19 @@ int Eb200Connector::read() {
         std::memcpy(&eb200_if_attribute, read_pointer, sizeof(eb200_if_attribute));
         read_pointer += sizeof(eb200_if_attribute);
 
+        if (eb200_if_attribute.selector_flags & ~0x80000000 != 0) {
+            std::cerr << "WARNING: unexpected selector flags: " << std::hex << eb200_if_attribute.selector_flags << "\n";
+        }
+
+
+        if (eb200_if_attribute.optional_header_length != 56 && eb200_if_attribute.optional_header_length != 0) {
+            std::cerr << "WARNING: optional header length should only be 0 or 56, but is " <<
+                eb200_if_attribute.optional_header_length << "\n";
+        }
+        // we don't really need anything from the optional header.
+        // since it's optional, we cannot rely on it anyway...
+        read_pointer += eb200_if_attribute.optional_header_length;
+
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
         convertFromNetwork((T*) read_pointer, conversion_buffer, len);
         processSamples(conversion_buffer,  len);
