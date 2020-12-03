@@ -181,6 +181,12 @@ int Eb200Connector::read() {
         return 1;
     }
 
+    // send "PRIVATE" flag as a separate command since it isn't supported by all receiver types
+    if (send_command("trace:udp:flag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ", \"PRIVATE\"\r\n") != 0) {
+        std::cerr << "registering trace flags failed\n";
+        return 1;
+    }
+
     if (send_command("SYST:IF:REM:MODE " + data_mode + "\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
         return 1;
