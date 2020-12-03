@@ -248,6 +248,11 @@ int Eb200Connector::read() {
         return 1;
     }
 
+    if (send_command("trace:udp:delete \"" + local_data_ip + "\"," + std::to_string(data_port) + "\r\n") != 0) {
+        std::cerr << "deregistering trace failed\n";
+        return 1;
+    }
+
     free(conversion_buffer);
     free(buffer);
     return 0;
