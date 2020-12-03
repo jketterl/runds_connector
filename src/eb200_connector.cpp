@@ -232,7 +232,6 @@ int Eb200Connector::read() {
         read_pointer += sizeof(eb200_if_attribute);
 
         uint32_t flags = ntohl(eb200_if_attribute.selector_flags);
-        std::cerr << "selector flags: " << std::hex << flags << "\n";
 
         if ((flags & ~0xA0000000) != 0) {
             std::cerr << "WARNING: unexpected selector flags: " << std::hex << flags << "\n";
@@ -248,7 +247,6 @@ int Eb200Connector::read() {
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
         // check SWAP flag
         if (flags & 0x20000000) {
-            std::cerr << "little-endian detected\n";
             // little-endian can be processed right away
             processSamples((T*) read_pointer, len);
         } else {
