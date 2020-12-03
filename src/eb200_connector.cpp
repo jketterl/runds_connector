@@ -231,22 +231,31 @@ int Eb200Connector::read() {
         std::memcpy(&eb200_if_attribute, read_pointer, sizeof(eb200_if_attribute));
         read_pointer += sizeof(eb200_if_attribute);
 
-        if (eb200_if_attribute.selector_flags & ~0x80000000 != 0) {
-            std::cerr << "WARNING: unexpected selector flags: " << std::hex << eb200_if_attribute.selector_flags << "\n";
+        uint32_t flags = ntohl(eb200_if_attribute.selector_flags);
+        std::cerr << "selector flags: " << std::hex << flags << "\n";
+
+        if ((flags & ~0xA0000000) != 0) {
+            std::cerr << "WARNING: unexpected selector flags: " << std::hex << flags << "\n";
         }
 
-
-        if (eb200_if_attribute.optional_header_length != 56 && eb200_if_attribute.optional_header_length != 0) {
-            std::cerr << "WARNING: optional header length should only be 0 or 56, but is " <<
-                eb200_if_attribute.optional_header_length << "\n";
+        if (!(flags & 0x80000000) && eb200_if_attribute.optional_header_length > 0) {
+            std::cerr << "WARNING: unexpected optional header\n";
         }
         // we don't really need anything from the optional header.
         // since it's optional, we cannot rely on it anyway...
         read_pointer += eb200_if_attribute.optional_header_length;
 
         uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
-        convertFromNetwork((T*) read_pointer, conversion_buffer, len);
-        processSamples(conversion_buffer,  len);
+        // check SWAP flag
+        if (flags & 0x20000000) {
+            std::cerr << "little-endian detected\n";
+            // little-endian can be processed right away
+            processSamples((T*) read_pointer, len);
+        } else {
+            // big-endian data needs to be reversed
+            convertFromNetwork((T*) read_pointer, conversion_buffer, len);
+            processSamples(conversion_buffer,  len);
+        }
     }
 
     if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
