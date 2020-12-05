@@ -331,6 +331,6 @@ int Eb200Connector::set_gain(Owrx::GainSpec* gain) {
     return 100;
 };
 
-int Eb200Connector::set_ppm(int ppm) {
+int Eb200Connector::set_ppm(double ppm) {
     return 0;
 };

@@ -19,7 +19,7 @@ class Eb200Connector: public Owrx::Connector {
         virtual int set_center_frequency(double frequency) override;
         virtual int set_sample_rate(double sample_rate) override;
         virtual int set_gain(Owrx::GainSpec* gain) override;
-        virtual int set_ppm(int ppm) override;
+        virtual int set_ppm(double ppm) override;
     private:
         std::string host = "127.0.0.1";
         struct in_addr host_addr;
