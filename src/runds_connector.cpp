@@ -29,7 +29,7 @@ std::vector<struct option> RundSConnector::getopt_long_options() {
 int RundSConnector::receive_option(int c, char* optarg) {
     switch (c) {
         case 'l':
-            data_mode = "LONG";
+            data_mode = DataMode::LONG;
             break;
         default:
             return Owrx::Connector::receive_option(c, optarg);
@@ -156,9 +156,9 @@ int RundSConnector::send_command(std::string cmd) {
 }
 
 int RundSConnector::read() {
-    if (data_mode == "LONG") {
+    if (data_mode == DataMode::LONG) {
         return read<int32_t>();
-    } else if (data_mode == "SHORT") {
+    } else if (data_mode == DataMode::SHORT) {
         return read<int16_t>();
     }
     std::cerr << "unsupported data mode: " << data_mode << "\n";
@@ -189,7 +189,17 @@ int RundSConnector::read() {
         return 1;
     }
 
-    if (send_command("SYST:IF:REM:MODE " + data_mode + "\r\n") != 0) {
+    std::string mode_string;
+    switch (data_mode) {
+        case DataMode::SHORT:
+            mode_string = "SHORT";
+            break;
+        case DataMode::LONG:
+            mode_string = "LONG";
+            break;
+    }
+
+    if (send_command("SYST:IF:REM:MODE " + mode_string + "\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
         return 1;
     }

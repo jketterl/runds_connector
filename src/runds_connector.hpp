@@ -7,6 +7,8 @@
 
 namespace RundS {
 
+    enum DataMode { SHORT, LONG };
+
     class RundSConnector: public Owrx::Connector {
         public:
             RundSConnector(): Owrx::Connector::Connector() {};
@@ -29,7 +31,7 @@ namespace RundS {
             uint16_t port = 5555;
             std::string local_data_ip;
             uint16_t data_port;
-            std::string data_mode = "SHORT";
+            DataMode data_mode = DataMode::SHORT;
             int control_sock;
             int data_sock;
 
