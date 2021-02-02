@@ -186,12 +186,11 @@ int RundSConnector::read() {
     char* read_pointer;
     T* conversion_buffer = (T*) malloc(sizeof(T) * get_buffer_size());
     int read;
+    uint32_t parsed_len;
+    bool swap;
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
     socklen_t len = sizeof(cliaddr);
-    struct eb200_header_t eb200_header;
-    struct eb200_generic_attribute_t eb200_generic_attribute;
-    struct eb200_if_attribute_t eb200_if_attribute;
 
     std::string trace;
     Parser* parser;
@@ -245,54 +244,19 @@ int RundSConnector::read() {
             continue;
         }
 
-        read_pointer = buffer;
-        if (read < sizeof(struct eb200_header_t)) {
-            std::cerr << "WARNING: incomplete data\n";
-            continue;
-        }
-        std::memcpy(&eb200_header, read_pointer, sizeof(eb200_header));
-        read_pointer += sizeof(eb200_header);
-        if (ntohl(eb200_header.magic) != 0x000eb200) {
-            std::cerr << "WARNING: invalid magic word: " << std::hex << eb200_header.magic << "\n";
-            continue;
-        }
-        if (ntohl(eb200_header.data_size) != read) {
-            std::cerr << "WARNING: data size mismatch\n";
+        read_pointer = parser->parse(buffer, read, &parsed_len, &swap);
+        if (read_pointer == nullptr) {
             continue;
         }
 
-        std::memcpy(&eb200_generic_attribute, read_pointer, sizeof(eb200_generic_attribute));
-        read_pointer += sizeof(eb200_generic_attribute);
-        if (ntohs(eb200_generic_attribute.tag) != 901) {
-            std::cerr << "WARNING: unexpected tag type\n";
-            continue;
-        }
-
-        std::memcpy(&eb200_if_attribute, read_pointer, sizeof(eb200_if_attribute));
-        read_pointer += sizeof(eb200_if_attribute);
-
-        uint32_t flags = ntohl(eb200_if_attribute.selector_flags);
-
-        if ((flags & ~0xA0000000) != 0) {
-            std::cerr << "WARNING: unexpected selector flags: " << std::hex << flags << "\n";
-        }
-
-        if (!(flags & 0x80000000) && eb200_if_attribute.optional_header_length > 0) {
-            std::cerr << "WARNING: unexpected optional header\n";
-        }
-        // we don't really need anything from the optional header.
-        // since it's optional, we cannot rely on it anyway...
-        read_pointer += eb200_if_attribute.optional_header_length;
-
-        uint32_t len = ntohs(eb200_if_attribute.number_of_trace_values) * 2;
         // check SWAP flag
-        if (flags & 0x20000000) {
+        if (swap) {
             // little-endian can be processed right away
-            processSamples((T*) read_pointer, len);
+            processSamples((T*) read_pointer, parsed_len);
         } else {
             // big-endian data needs to be reversed
-            convertFromNetwork((T*) read_pointer, conversion_buffer, len);
-            processSamples(conversion_buffer,  len);
+            convertFromNetwork((T*) read_pointer, conversion_buffer, parsed_len);
+            processSamples(conversion_buffer, parsed_len);
         }
     }
 
@@ -306,6 +270,7 @@ int RundSConnector::read() {
         return 1;
     }
 
+    delete parser;
     free(conversion_buffer);
     free(buffer);
     return 0;

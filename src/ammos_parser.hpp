@@ -6,7 +6,7 @@ namespace RundS {
 
     class AmmosParser: public Parser {
         public:
-            virtual void parse(char* raw);
+            virtual char* parse(char* raw, int len, uint32_t* parsed_len, bool* swap);
     };
 
 }

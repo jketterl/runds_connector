@@ -2,5 +2,6 @@
 
 using namespace RundS;
 
-void AmmosParser::parse(char* raw) {
+char* AmmosParser::parse(char* raw, int len, uint32_t* parsed_len, bool* swap) {
+    return nullptr;
 }

@@ -1,10 +1,12 @@
 #pragma once
 
+#include <stdint.h>
+
 namespace RundS {
 
     class Parser {
         public:
-            virtual void parse(char* raw) = 0;
+            virtual char* parse(char* raw, int len, uint32_t* parsed_len, bool* swap) = 0;
     };
 
 }
