@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(eb200_connector)
+project(runds_connector)
 
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)
