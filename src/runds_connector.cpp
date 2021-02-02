@@ -1,4 +1,7 @@
 #include "runds_connector.hpp"
+#include "parser.hpp"
+#include "eb200_parser.hpp"
+#include "ammos_parser.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -190,7 +193,20 @@ int RundSConnector::read() {
     struct eb200_generic_attribute_t eb200_generic_attribute;
     struct eb200_if_attribute_t eb200_if_attribute;
 
-    if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
+    std::string trace;
+    Parser* parser;
+    switch (protocol) {
+        case Protocol::EB200:
+            trace = "IF";
+            parser = new Eb200Parser();
+            break;
+        case Protocol::AMMOS:
+            trace = "AIF";
+            parser = new AmmosParser();
+            break;
+    }
+
+    if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + trace + "\r\n") != 0) {
         std::cerr << "registering trace failed\n";
         return 1;
     }
@@ -280,7 +296,7 @@ int RundSConnector::read() {
         }
     }
 
-    if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + ",if\r\n") != 0) {
+    if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + trace + "\r\n") != 0) {
         std::cerr << "deregistering trace failed\n";
         return 1;
     }
