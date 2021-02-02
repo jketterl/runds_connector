@@ -1,4 +1,4 @@
-#include "eb200_connector.hpp"
+#include "runds_connector.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -6,25 +6,27 @@
 #include <cstring>
 #include <unistd.h>
 
+using namespace RundS;
+
 int main (int argc, char** argv) {
-    Eb200Connector* connector = new Eb200Connector();
+    RundSConnector* connector = new RundSConnector();
     return connector->main(argc, argv);
 }
 
-std::stringstream Eb200Connector::get_usage_string() {
+std::stringstream RundSConnector::get_usage_string() {
     std::stringstream s = Owrx::Connector::get_usage_string();
     s <<
         " -l, --long              use long (32bit samples) sample size\n";
     return s;
 }
 
-std::vector<struct option> Eb200Connector::getopt_long_options() {
+std::vector<struct option> RundSConnector::getopt_long_options() {
     std::vector<struct option> long_options = Owrx::Connector::getopt_long_options();
     long_options.push_back({"long", no_argument, NULL, 'l'});
     return long_options;
 }
 
-int Eb200Connector::receive_option(int c, char* optarg) {
+int RundSConnector::receive_option(int c, char* optarg) {
     switch (c) {
         case 'l':
             data_mode = "LONG";
@@ -36,7 +38,7 @@ int Eb200Connector::receive_option(int c, char* optarg) {
 }
 
 
-int Eb200Connector::parse_arguments(int argc, char** argv) {
+int RundSConnector::parse_arguments(int argc, char** argv) {
     int r = Connector::parse_arguments(argc, argv);
     if (r != 0) return r;
 
@@ -57,12 +59,12 @@ int Eb200Connector::parse_arguments(int argc, char** argv) {
     return 0;
 }
 
-uint32_t Eb200Connector::get_buffer_size() {
+uint32_t RundSConnector::get_buffer_size() {
     // initial guess
     return 16 * 32 * 512;
 };
 
-int Eb200Connector::open() {
+int RundSConnector::open() {
     struct hostent* hp = gethostbyname(host.c_str());
     if (hp == NULL) {
         std::cerr << "gethostbyname() failed\n";
@@ -138,7 +140,7 @@ int Eb200Connector::open() {
     return 0;
 };
 
-int Eb200Connector::send_command(std::string cmd) {
+int RundSConnector::send_command(std::string cmd) {
     ssize_t len = cmd.size();
     ssize_t sent = send(control_sock, cmd.c_str(), len, 0);
     if (len != sent) return -1;
@@ -153,7 +155,7 @@ int Eb200Connector::send_command(std::string cmd) {
     return 0;
 }
 
-int Eb200Connector::read() {
+int RundSConnector::read() {
     if (data_mode == "LONG") {
         return read<int32_t>();
     } else if (data_mode == "SHORT") {
@@ -164,7 +166,7 @@ int Eb200Connector::read() {
 }
 
 template <typename T>
-int Eb200Connector::read() {
+int RundSConnector::read() {
     char* buffer = (char*) malloc(sizeof(char) * get_buffer_size());
     char* read_pointer;
     T* conversion_buffer = (T*) malloc(sizeof(T) * get_buffer_size());
@@ -271,19 +273,19 @@ int Eb200Connector::read() {
     return 0;
 };
 
-void Eb200Connector::convertFromNetwork(int16_t* input, int16_t* output, uint32_t length) {
+void RundSConnector::convertFromNetwork(int16_t* input, int16_t* output, uint32_t length) {
     for (int i = 0; i < length; i++) {
         output[i] = ntohs(input[i]);
     }
 }
 
-void Eb200Connector::convertFromNetwork(int32_t* input, int32_t* output, uint32_t length) {
+void RundSConnector::convertFromNetwork(int32_t* input, int32_t* output, uint32_t length) {
     for (int i = 0; i < length; i++) {
         output[i] = ntohl(input[i]);
     }
 }
 
-int Eb200Connector::close() {
+int RundSConnector::close() {
     if (::close(data_sock) < 0) {
         std::cerr << "eb200 data socket close error\n";
         return 1;
@@ -297,15 +299,15 @@ int Eb200Connector::close() {
     return 0;
 };
 
-int Eb200Connector::set_center_frequency(double frequency) {
+int RundSConnector::set_center_frequency(double frequency) {
     return send_command("FREQ " + std::to_string((long) frequency) + "\r\n");
 };
 
-int Eb200Connector::set_sample_rate(double sample_rate) {
+int RundSConnector::set_sample_rate(double sample_rate) {
     return send_command("BAND " + std::to_string((long) (sample_rate / 1.28)) + "\r\n");
 };
 
-int Eb200Connector::set_gain(Owrx::GainSpec* gain) {
+int RundSConnector::set_gain(Owrx::GainSpec* gain) {
     if (dynamic_cast<Owrx::AutoGainSpec*>(gain) != nullptr) {
         return send_command("GCON:MODE AGC\r\n");
     }
@@ -331,6 +333,6 @@ int Eb200Connector::set_gain(Owrx::GainSpec* gain) {
     return 100;
 };
 
-int Eb200Connector::set_ppm(double ppm) {
+int RundSConnector::set_ppm(double ppm) {
     return 0;
 };
