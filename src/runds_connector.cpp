@@ -16,6 +16,7 @@ int main (int argc, char** argv) {
 std::stringstream RundSConnector::get_usage_string() {
     std::stringstream s = Owrx::Connector::get_usage_string();
     s <<
+        " -m, --protocol          select data protocol to be used (eb200, ammos)\n" <<
         " -l, --long              use long (32bit samples) sample size\n";
     return s;
 }
@@ -23,6 +24,7 @@ std::stringstream RundSConnector::get_usage_string() {
 std::vector<struct option> RundSConnector::getopt_long_options() {
     std::vector<struct option> long_options = Owrx::Connector::getopt_long_options();
     long_options.push_back({"long", no_argument, NULL, 'l'});
+    long_options.push_back({"protocol", required_argument, NULL, 'm'});
     return long_options;
 }
 
@@ -30,6 +32,16 @@ int RundSConnector::receive_option(int c, char* optarg) {
     switch (c) {
         case 'l':
             data_mode = DataMode::LONG;
+            break;
+        case 'm':
+            if (strcmp(optarg, "eb200") == 0) {
+                protocol = Protocol::EB200;
+            } else if (strcmp(optarg, "ammos") == 0) {
+                protocol = Protocol::AMMOS;
+            } else {
+                std::cout << "Invalid protocol: " << optarg << "\n";
+                return -1;
+            }
             break;
         default:
             return Owrx::Connector::receive_option(c, optarg);
