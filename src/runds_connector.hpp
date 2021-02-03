@@ -8,7 +8,7 @@
 namespace RundS {
 
     enum DataMode { SHORT, LONG };
-    enum Protocol { EB200, AMMOS };
+    enum ProtocolType { EB200, AMMOS };
 
     class RundSConnector: public Owrx::Connector {
         public:
@@ -33,7 +33,7 @@ namespace RundS {
             std::string local_data_ip;
             uint16_t data_port;
             DataMode data_mode = DataMode::SHORT;
-            Protocol protocol = Protocol::EB200;
+            ProtocolType protocol_type = ProtocolType::EB200;
             int control_sock;
             int data_sock;
 

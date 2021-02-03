@@ -1,14 +1,14 @@
 #pragma once
 
-#include "parser.hpp"
+#include "protocol.hpp"
 
 namespace RundS {
 
     template <typename T>
-    class Eb200Parser: public Parser<T> {
+    class Eb200Protocol: public Protocol<T> {
         public:
-            Eb200Parser();
-            ~Eb200Parser();
+            Eb200Protocol();
+            ~Eb200Protocol();
             virtual T* parse(char* raw, int len, uint32_t* parsed_len);
         private:
             T* conversion_buffer;

@@ -5,7 +5,7 @@
 namespace RundS {
 
     template <typename T>
-    class Parser {
+    class Protocol {
         public:
             virtual T* parse(char* raw, int len, uint32_t* parsed_len) = 0;
         protected:

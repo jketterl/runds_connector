@@ -1,4 +1,4 @@
-#include "eb200_parser.hpp"
+#include "eb200_protocol.hpp"
 
 #include <arpa/inet.h>
 #include <iostream>
@@ -7,17 +7,17 @@
 using namespace RundS;
 
 template <typename T>
-Eb200Parser<T>::Eb200Parser() {
+Eb200Protocol<T>::Eb200Protocol() {
     conversion_buffer = (T*) malloc(65536 * sizeof(T));
 }
 
 template <typename T>
-Eb200Parser<T>::~Eb200Parser() {
+Eb200Protocol<T>::~Eb200Protocol() {
     free(conversion_buffer);
 }
 
 template <typename T>
-T* Eb200Parser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
+T* Eb200Protocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(eb200_header_t)) {
         std::cerr << "WARNING: incomplete data\n";
@@ -69,5 +69,5 @@ T* Eb200Parser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     }
 }
 
-template class Eb200Parser<int16_t>;
-template class Eb200Parser<int32_t>;
+template class Eb200Protocol<int16_t>;
+template class Eb200Protocol<int32_t>;

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "parser.hpp"
+#include "protocol.hpp"
 
 namespace RundS {
 
     template <typename T>
-    class AmmosParser: public Parser<T> {
+    class AmmosProtocol: public Protocol<T> {
         public:
-            AmmosParser();
-            ~AmmosParser();
+            AmmosProtocol();
+            ~AmmosProtocol();
             virtual T* parse(char* raw, int len, uint32_t* parsed_len);
         private:
             int32_t* conversion_buffer;

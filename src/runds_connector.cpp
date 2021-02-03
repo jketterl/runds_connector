@@ -1,7 +1,7 @@
 #include "runds_connector.hpp"
-#include "parser.hpp"
-#include "eb200_parser.hpp"
-#include "ammos_parser.hpp"
+#include "protocol.hpp"
+#include "eb200_protocol.hpp"
+#include "ammos_protocol.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -38,9 +38,9 @@ int RundSConnector::receive_option(int c, char* optarg) {
             break;
         case 'm':
             if (strcmp(optarg, "eb200") == 0) {
-                protocol = Protocol::EB200;
+                protocol_type = ProtocolType::EB200;
             } else if (strcmp(optarg, "ammos") == 0) {
-                protocol = Protocol::AMMOS;
+                protocol_type = ProtocolType::AMMOS;
             } else {
                 std::cout << "Invalid protocol: " << optarg << "\n";
                 return -1;
@@ -191,15 +191,15 @@ int RundSConnector::read() {
     socklen_t len = sizeof(cliaddr);
 
     std::string trace;
-    Parser<T>* parser;
-    switch (protocol) {
-        case Protocol::EB200:
+    Protocol<T>* protocol;
+    switch (protocol_type) {
+        case ProtocolType::EB200:
             trace = "IF";
-            parser = new Eb200Parser<T>();
+            protocol = new Eb200Protocol<T>();
             break;
-        case Protocol::AMMOS:
+        case ProtocolType::AMMOS:
             trace = "AIF";
-            parser = new AmmosParser<T>();
+            protocol = new AmmosProtocol<T>();
             break;
     }
 
@@ -224,7 +224,7 @@ int RundSConnector::read() {
             break;
     }
     // Ammos uses "ASHORT" / "ALONG" data formats... basically, just prepend "A" if Ammos
-    if (protocol == Protocol::AMMOS) {
+    if (protocol_type == ProtocolType::AMMOS) {
         mode_string = "A" + mode_string;
     }
 
@@ -246,7 +246,7 @@ int RundSConnector::read() {
             continue;
         }
 
-        T* converted = parser->parse(buffer, read, &parsed_len);
+        T* converted = protocol->parse(buffer, read, &parsed_len);
         if (converted == nullptr) {
             continue;
         }
@@ -264,7 +264,7 @@ int RundSConnector::read() {
         return 1;
     }
 
-    delete parser;
+    delete protocol;
     free(conversion_buffer);
     free(buffer);
     return 0;

@@ -1,4 +1,4 @@
-#include "ammos_parser.hpp"
+#include "ammos_protocol.hpp"
 
 #include <iostream>
 #include <arpa/inet.h>
@@ -6,17 +6,17 @@
 using namespace RundS;
 
 template <typename T>
-AmmosParser<T>::AmmosParser() {
+AmmosProtocol<T>::AmmosProtocol() {
     conversion_buffer = (int32_t*) malloc(sizeof(int32_t) * 65536);
 }
 
 template <typename T>
-AmmosParser<T>::~AmmosParser() {
+AmmosProtocol<T>::~AmmosProtocol() {
     free(conversion_buffer);
 }
 
 template <typename T>
-T* AmmosParser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
+T* AmmosProtocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(ammos_frame_header_t)) {
         std::cerr << "WARNING: incomplete data\n";
@@ -53,5 +53,5 @@ T* AmmosParser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     return (T*) conversion_buffer;
 }
 
-template class AmmosParser<int16_t>;
-template class AmmosParser<int32_t>;
+template class AmmosProtocol<int16_t>;
+template class AmmosProtocol<int32_t>;
