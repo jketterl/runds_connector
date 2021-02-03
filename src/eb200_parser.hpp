@@ -4,9 +4,14 @@
 
 namespace RundS {
 
-    class Eb200Parser: public Parser {
+    template <typename T>
+    class Eb200Parser: public Parser<T> {
         public:
-            virtual char* parse(char* raw, int len, uint32_t* parsed_len, bool* swap);
+            Eb200Parser();
+            ~Eb200Parser();
+            virtual T* parse(char* raw, int len, uint32_t* parsed_len);
+        private:
+            T* conversion_buffer;
     };
 
     typedef struct eb200_header_s {

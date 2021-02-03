@@ -38,8 +38,6 @@ namespace RundS {
             int data_sock;
 
             int send_command(std::string cmd);
-            void convertFromNetwork(int16_t* input, int16_t* output, uint32_t length);
-            void convertFromNetwork(int32_t* input, int32_t* output, uint32_t length);
             template <typename T>
             int read();
     };

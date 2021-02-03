@@ -6,7 +6,18 @@
 
 using namespace RundS;
 
-char* Eb200Parser::parse(char* raw, int len, uint32_t* parsed_len, bool* swap) {
+template <typename T>
+Eb200Parser<T>::Eb200Parser() {
+    conversion_buffer = (T*) malloc(65536 * sizeof(T));
+}
+
+template <typename T>
+Eb200Parser<T>::~Eb200Parser() {
+    free(conversion_buffer);
+}
+
+template <typename T>
+T* Eb200Parser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(eb200_header_t)) {
         std::cerr << "WARNING: incomplete data\n";
@@ -45,11 +56,18 @@ char* Eb200Parser::parse(char* raw, int len, uint32_t* parsed_len, bool* swap) {
     if (!(flags & 0x80000000) && eb200_if_attribute->optional_header_length > 0) {
         std::cerr << "WARNING: unexpected optional header\n";
     }
-    *swap = (flags & 0x20000000) > 0;
 
     // we don't really need anything from the optional header.
     // since it's optional, we cannot rely on it anyway...
     read_pointer += eb200_if_attribute->optional_header_length;
 
-    return read_pointer;
+    if (flags & 0x20000000) {
+        return (T*) read_pointer;
+    } else {
+        this->convertFromNetwork((T*) read_pointer, conversion_buffer, *parsed_len);
+        return conversion_buffer;
+    }
 }
+
+template class Eb200Parser<int16_t>;
+template class Eb200Parser<int32_t>;

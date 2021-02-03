@@ -5,19 +5,18 @@
 
 using namespace RundS;
 
-AmmosParser::AmmosParser(DataMode my_data_mode) {
-    data_mode = my_data_mode;
-    switch (data_mode) {
-        case DataMode::SHORT:
-            sample_size = sizeof(int16_t);
-            break;
-        case DataMode::LONG:
-            sample_size = sizeof(int32_t);
-            break;
-    }
+template <typename T>
+AmmosParser<T>::AmmosParser() {
+    conversion_buffer = (int32_t*) malloc(sizeof(int32_t) * 65536);
 }
 
-char* AmmosParser::parse(char* raw, int len, uint32_t* parsed_len, bool* swap) {
+template <typename T>
+AmmosParser<T>::~AmmosParser() {
+    free(conversion_buffer);
+}
+
+template <typename T>
+T* AmmosParser<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(ammos_frame_header_t)) {
         std::cerr << "WARNING: incomplete data\n";
@@ -42,12 +41,17 @@ char* AmmosParser::parse(char* raw, int len, uint32_t* parsed_len, bool* swap) {
     }
     read_pointer += data_header_length;
 
-    *parsed_len = ntohl(ammos_data_header->data_block_length) * sizeof(uint32_t) / sample_size;
+    uint32_t data_block_length = ntohl(ammos_data_header->data_block_length);
+    *parsed_len = data_block_length * sizeof(uint32_t) / sizeof(T);
 
-    ammos_data_block_header_t* ammos_data_block_header = reinterpret_cast<ammos_data_block_header_t*>(read_pointer);
+    // unused
+    // ammos_data_block_header_t* ammos_data_block_header = reinterpret_cast<ammos_data_block_header_t*>(read_pointer);
     read_pointer += sizeof(ammos_data_block_header_t);
 
-    // does ammos support swap? there seems to be no flag in the documentation.
-    *swap = false;
-    return read_pointer;
+    this->convertFromNetwork((int32_t*) read_pointer, conversion_buffer, data_block_length);
+
+    return (T*) conversion_buffer;
 }
+
+template class AmmosParser<int16_t>;
+template class AmmosParser<int32_t>;

@@ -1,17 +1,17 @@
 #pragma once
 
 #include "parser.hpp"
-#include "runds_connector.hpp"
 
 namespace RundS {
 
-    class AmmosParser: public Parser {
+    template <typename T>
+    class AmmosParser: public Parser<T> {
         public:
-            AmmosParser(DataMode data_mode);
-            virtual char* parse(char* raw, int len, uint32_t* parsed_len, bool* swap);
+            AmmosParser();
+            ~AmmosParser();
+            virtual T* parse(char* raw, int len, uint32_t* parsed_len);
         private:
-            DataMode data_mode;
-            uint8_t sample_size;
+            int32_t* conversion_buffer;
     };
 
     typedef struct ammos_frame_header_s {

@@ -183,25 +183,23 @@ int RundSConnector::read() {
 template <typename T>
 int RundSConnector::read() {
     char* buffer = (char*) malloc(sizeof(char) * get_buffer_size());
-    char* read_pointer;
     T* conversion_buffer = (T*) malloc(sizeof(T) * get_buffer_size());
     int read;
     uint32_t parsed_len;
-    bool swap;
     struct sockaddr_in cliaddr;
     memset(&cliaddr, 0, sizeof(cliaddr));
     socklen_t len = sizeof(cliaddr);
 
     std::string trace;
-    Parser* parser;
+    Parser<T>* parser;
     switch (protocol) {
         case Protocol::EB200:
             trace = "IF";
-            parser = new Eb200Parser();
+            parser = new Eb200Parser<T>();
             break;
         case Protocol::AMMOS:
             trace = "AIF";
-            parser = new AmmosParser(data_mode);
+            parser = new AmmosParser<T>();
             break;
     }
 
@@ -248,25 +246,12 @@ int RundSConnector::read() {
             continue;
         }
 
-        read_pointer = parser->parse(buffer, read, &parsed_len, &swap);
-        if (read_pointer == nullptr) {
+        T* converted = parser->parse(buffer, read, &parsed_len);
+        if (converted == nullptr) {
             continue;
         }
 
-        // check SWAP flag
-        if (swap) {
-            // little-endian can be processed right away
-            processSamples((T*) read_pointer, parsed_len);
-        } else {
-            // big-endian data needs to be reversed
-            if (protocol == Protocol::AMMOS && data_mode == DataMode::SHORT) {
-                // Ammos packs 2 16-bit samples in a 32-bit value and sends that in big-endian...
-                convertFromNetwork((int32_t*) read_pointer, (int32_t*)conversion_buffer, parsed_len / 2);
-            } else {
-                convertFromNetwork((T*) read_pointer, conversion_buffer, parsed_len);
-            }
-            processSamples(conversion_buffer, parsed_len);
-        }
+        processSamples(converted, parsed_len);
     }
 
     if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + trace + "\r\n") != 0) {
@@ -284,18 +269,6 @@ int RundSConnector::read() {
     free(buffer);
     return 0;
 };
-
-void RundSConnector::convertFromNetwork(int16_t* input, int16_t* output, uint32_t length) {
-    for (int i = 0; i < length; i++) {
-        output[i] = ntohs(input[i]);
-    }
-}
-
-void RundSConnector::convertFromNetwork(int32_t* input, int32_t* output, uint32_t length) {
-    for (int i = 0; i < length; i++) {
-        output[i] = ntohl(input[i]);
-    }
-}
 
 int RundSConnector::close() {
     if (::close(data_sock) < 0) {
