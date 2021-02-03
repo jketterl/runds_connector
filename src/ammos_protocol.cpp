@@ -20,6 +20,16 @@ std::string AmmosProtocol<T>::getTrace() {
     return "AIF";
 }
 
+template <>
+std::string AmmosProtocol<int16_t>::getModeString() {
+    return "ASHORT";
+}
+
+template<>
+std::string AmmosProtocol<int32_t>::getModeString() {
+    return "ALONG";
+}
+
 template <typename T>
 T* AmmosProtocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;

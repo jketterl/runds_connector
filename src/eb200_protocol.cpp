@@ -21,6 +21,16 @@ std::string Eb200Protocol<T>::getTrace() {
     return "IF";
 }
 
+template<>
+std::string Eb200Protocol<int16_t>::getModeString() {
+    return "SHORT";
+}
+
+template<>
+std::string Eb200Protocol<int32_t>::getModeString() {
+    return "LONG";
+}
+
 template <typename T>
 T* Eb200Protocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;

@@ -11,6 +11,7 @@ namespace RundS {
             ~AmmosProtocol();
             virtual T* parse(char* raw, int len, uint32_t* parsed_len);
             virtual std::string getTrace();
+            virtual std::string getModeString();
         private:
             int32_t* conversion_buffer;
     };
