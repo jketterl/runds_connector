@@ -225,6 +225,10 @@ int RundSConnector::read() {
             mode_string = "LONG";
             break;
     }
+    // Ammos uses "ASHORT" / "ALONG" data formats... basically, just prepend "A" if Ammos
+    if (protocol == Protocol::AMMOS) {
+        mode_string = "A" + mode_string;
+    }
 
     if (send_command("SYST:IF:REM:MODE " + mode_string + "\r\n") != 0) {
         std::cerr << "sending mode command failed\n";
