@@ -201,7 +201,7 @@ int RundSConnector::read() {
             break;
         case Protocol::AMMOS:
             trace = "AIF";
-            parser = new AmmosParser();
+            parser = new AmmosParser(data_mode);
             break;
     }
 
@@ -259,7 +259,12 @@ int RundSConnector::read() {
             processSamples((T*) read_pointer, parsed_len);
         } else {
             // big-endian data needs to be reversed
-            convertFromNetwork((T*) read_pointer, conversion_buffer, parsed_len);
+            if (protocol == Protocol::AMMOS && data_mode == DataMode::SHORT) {
+                // Ammos packs 2 16-bit samples in a 32-bit value and sends that in big-endian...
+                convertFromNetwork((int32_t*) read_pointer, (int32_t*)conversion_buffer, parsed_len / 2);
+            } else {
+                convertFromNetwork((T*) read_pointer, conversion_buffer, parsed_len);
+            }
             processSamples(conversion_buffer, parsed_len);
         }
     }
