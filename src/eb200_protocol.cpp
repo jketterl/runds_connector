@@ -17,6 +17,11 @@ Eb200Protocol<T>::~Eb200Protocol() {
 }
 
 template <typename T>
+std::string Eb200Protocol<T>::getTrace() {
+    return "IF";
+}
+
+template <typename T>
 T* Eb200Protocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(eb200_header_t)) {

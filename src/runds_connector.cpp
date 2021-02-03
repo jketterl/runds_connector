@@ -190,20 +190,17 @@ int RundSConnector::read() {
     memset(&cliaddr, 0, sizeof(cliaddr));
     socklen_t len = sizeof(cliaddr);
 
-    std::string trace;
     Protocol<T>* protocol;
     switch (protocol_type) {
         case ProtocolType::EB200:
-            trace = "IF";
             protocol = new Eb200Protocol<T>();
             break;
         case ProtocolType::AMMOS:
-            trace = "AIF";
             protocol = new AmmosProtocol<T>();
             break;
     }
 
-    if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + trace + "\r\n") != 0) {
+    if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + protocol->getTrace() + "\r\n") != 0) {
         std::cerr << "registering trace failed\n";
         return 1;
     }
@@ -254,7 +251,7 @@ int RundSConnector::read() {
         processSamples(converted, parsed_len);
     }
 
-    if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + trace + "\r\n") != 0) {
+    if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + protocol->getTrace() + "\r\n") != 0) {
         std::cerr << "deregistering trace failed\n";
         return 1;
     }

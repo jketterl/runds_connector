@@ -10,6 +10,7 @@ namespace RundS {
             Eb200Protocol();
             ~Eb200Protocol();
             virtual T* parse(char* raw, int len, uint32_t* parsed_len);
+            virtual std::string getTrace();
         private:
             T* conversion_buffer;
     };

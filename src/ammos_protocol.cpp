@@ -16,6 +16,11 @@ AmmosProtocol<T>::~AmmosProtocol() {
 }
 
 template <typename T>
+std::string AmmosProtocol<T>::getTrace() {
+    return "AIF";
+}
+
+template <typename T>
 T* AmmosProtocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(ammos_frame_header_t)) {
