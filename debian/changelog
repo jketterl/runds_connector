@@ -1,3 +1,7 @@
+runds-connector (0.2.0) UNRELEASED; urgency=low
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 09 May 2021 22:34:00 +0000
+
 runds-connector (0.1.0) buster hirsute; urgency=low
   * Renamed from eb200-connector
   * Initial release
