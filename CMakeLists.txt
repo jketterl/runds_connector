@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(runds_connector)
+project(runds_connector VERSION 0.2.0)
+add_definitions(-DVERSION="${PROJECT_VERSION}-dev")
 
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)

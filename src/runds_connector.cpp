@@ -74,6 +74,11 @@ int RundSConnector::parse_arguments(int argc, char** argv) {
     return 0;
 }
 
+void RundSConnector::print_version() {
+    std::cout << "runds_connector version " << VERSION << "\n";
+    Connector::print_version();
+}
+
 uint32_t RundSConnector::get_buffer_size() {
     // initial guess
     return 16 * 32 * 512;

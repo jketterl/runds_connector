@@ -19,6 +19,7 @@ namespace RundS {
             std::vector<struct option> getopt_long_options() override;
             int receive_option(int c, char* optarg) override;
             virtual int parse_arguments(int argc, char** argv) override;
+            virtual void print_version() override;
             virtual int open() override;
             virtual int read() override;
             virtual int close() override;
