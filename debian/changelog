@@ -1,8 +1,11 @@
 runds-connector (0.2.0) UNRELEASED; urgency=low
 
- -- Jakob Ketterl <jakob.ketterl@gmx.de>  Sat, 09 May 2021 22:34:00 +0000
+  * Adopted to API changes from owrx_connector 0.5
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 02 Aug 2021 16:18:00 +0000
 
 runds-connector (0.1.0) buster hirsute; urgency=low
+
   * Renamed from eb200-connector
   * Initial release
 
