@@ -1,4 +1,4 @@
-runds-connector (0.2.0) UNRELEASED; urgency=low
+runds-connector (0.2.0) buster hirsute; urgency=low
 
   * Adopted to API changes from owrx_connector 0.5
 
