@@ -1,3 +1,10 @@
+runds-connector (0.2.1) bullseye jammy; urgency=low
+
+  * New build for Debian Bullseye
+  * New build for Ubuntu Jammy Jellyfish
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Wed, 15 Jun 2022 14:45:00 +0000
+
 runds-connector (0.2.0) buster hirsute; urgency=low
 
   * Adopted to API changes from owrx_connector 0.5
