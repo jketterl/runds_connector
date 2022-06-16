@@ -1,6 +1,13 @@
 runds-connector (0.3.0) UNRELEASED; urgency=low
 
-  -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 02 Aug 2021 19:52:00 +0000
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 02 Aug 2021 19:52:00 +0000
+
+runds-connector (0.2.1) bullseye jammy; urgency=low
+
+  * New build for Debian Bullseye
+  * New build for Ubuntu Jammy Jellyfish
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Wed, 15 Jun 2022 14:45:00 +0000
 
 runds-connector (0.2.0) buster hirsute; urgency=low
 
