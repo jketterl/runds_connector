@@ -42,7 +42,7 @@ int RundSConnector::receive_option(int c, char* optarg) {
             } else if (strcmp(optarg, "ammos") == 0) {
                 protocol_type = ProtocolType::AMMOS;
             } else {
-                std::cout << "Invalid protocol: " << optarg << "\n";
+                std::cerr << "Invalid protocol: " << optarg << "\n";
                 return -1;
             }
             break;
@@ -169,7 +169,7 @@ int RundSConnector::send_command(std::string cmd) {
     int bytes_read = recv(control_sock, buf, 255, MSG_DONTWAIT);
     if (bytes_read > 0) {
         std::string response = std::string(buf, bytes_read);
-        std::cerr << "command response: " << response << "\n";
+        std::cout << "command response: " << response << "\n";
     }
     free(buf);
     return 0;
