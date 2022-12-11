@@ -8,6 +8,7 @@ namespace RundS {
     template <typename T>
     class Protocol {
         public:
+            virtual ~Protocol() = default;
             virtual T* parse(char* raw, int len, uint32_t* parsed_len) = 0;
             virtual std::string getTrace() = 0;
             virtual std::string getModeString() = 0;
