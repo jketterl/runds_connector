@@ -35,25 +35,25 @@ template <typename T>
 T* Eb200Protocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(eb200_header_t)) {
-        std::cerr << "WARNING: incomplete data\n";
+        std::cerr << "WARNING: incomplete data" << std::endl;
         return nullptr;
     }
 
     eb200_header_t* eb200_header = reinterpret_cast<eb200_header_t*>(read_pointer);
     read_pointer += sizeof(eb200_header_t);
     if (ntohl(eb200_header->magic) != 0x000eb200) {
-        std::cerr << "WARNING: invalid magic word: " << std::hex << eb200_header->magic << "\n";
+        std::cerr << "WARNING: invalid magic word: " << std::hex << eb200_header->magic << std::endl;
         return nullptr;
     }
     if (ntohl(eb200_header->data_size) != len) {
-        std::cerr << "WARNING: data size mismatch\n";
+        std::cerr << "WARNING: data size mismatch" << std::endl;
         return nullptr;
     }
 
     eb200_generic_attribute_t* eb200_generic_attribute = reinterpret_cast<eb200_generic_attribute_t*>(read_pointer);
     read_pointer += sizeof(eb200_generic_attribute_t);
     if (ntohs(eb200_generic_attribute->tag) != 901) {
-        std::cerr << "WARNING: unexpected tag type\n";
+        std::cerr << "WARNING: unexpected tag type" << std::endl;
         return nullptr;
     }
 
@@ -65,11 +65,11 @@ T* Eb200Protocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     uint32_t flags = ntohl(eb200_if_attribute->selector_flags);
 
     if ((flags & ~0xA0000000) != 0) {
-        std::cerr << "WARNING: unexpected selector flags: " << std::hex << flags << "\n";
+        std::cerr << "WARNING: unexpected selector flags: " << std::hex << flags << std::endl;
     }
 
     if (!(flags & 0x80000000) && eb200_if_attribute->optional_header_length > 0) {
-        std::cerr << "WARNING: unexpected optional header\n";
+        std::cerr << "WARNING: unexpected optional header" << std::endl;
     }
 
     // we don't really need anything from the optional header.

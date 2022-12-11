@@ -42,7 +42,7 @@ int RundSConnector::receive_option(int c, char* optarg) {
             } else if (strcmp(optarg, "ammos") == 0) {
                 protocol_type = ProtocolType::AMMOS;
             } else {
-                std::cerr << "Invalid protocol: " << optarg << "\n";
+                std::cerr << "Invalid protocol: " << optarg << std::endl;
                 return -1;
             }
             break;
@@ -75,7 +75,7 @@ int RundSConnector::parse_arguments(int argc, char** argv) {
 }
 
 void RundSConnector::print_version() {
-    std::cout << "runds_connector version " << VERSION << "\n";
+    std::cout << "runds_connector version " << VERSION << std::endl;
     Connector::print_version();
 }
 
@@ -87,12 +87,12 @@ uint32_t RundSConnector::get_buffer_size() {
 int RundSConnector::open() {
     struct hostent* hp = gethostbyname(host.c_str());
     if (hp == NULL) {
-        std::cerr << "gethostbyname() failed\n";
+        std::cerr << "gethostbyname() failed" << std::endl;
         return 3;
     }
 
     if ((control_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        std::cerr << "eb200 control socket creation error: " << control_sock << "\n";
+        std::cerr << "eb200 control socket creation error: " << control_sock << std::endl;
         return 1;
     }
 
@@ -106,25 +106,25 @@ int RundSConnector::open() {
     control_remote.sin_addr = host_addr;
 
     if (connect(control_sock, (struct sockaddr *)&control_remote, sizeof(control_remote)) < 0) {
-        std::cerr << "eb200 connection failed\n";
+        std::cerr << "eb200 connection failed" << std::endl;
         return 2;
     }
 
     if (send_command("*RST\r\n") != 0) {
-        std::cerr << "eb200 reset failed\n";
+        std::cerr << "eb200 reset failed" << std::endl;
         return 2;
     }
 
     socklen_t len = sizeof(control_remote);
     if (getsockname(control_sock, (struct sockaddr *) &control_remote, &len) < 0) {
-        std::cerr << "getting local IP failed \n";
+        std::cerr << "getting local IP failed" << std::endl;
         return 3;
     }
 
     local_data_ip = std::string(inet_ntoa(control_remote.sin_addr));
 
     if ((data_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        std::cerr << "eb200 data socket creation error: " << data_sock << "\n";
+        std::cerr << "eb200 data socket creation error: " << data_sock << std::endl;
         return 1;
     }
 
@@ -137,13 +137,13 @@ int RundSConnector::open() {
     data_remote.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(data_sock, (struct sockaddr*) &data_remote, sizeof(data_remote)) < 0) {
-        std::cerr << "eb200 data socket bind error\n";
+        std::cerr << "eb200 data socket bind error" << std::endl;
         return 1;
     }
 
     len = sizeof(data_remote);
     if (getsockname(data_sock, (struct sockaddr*) &data_remote, &len) < 0) {
-        std::cerr << "eb200 data socket getsockname error\n";
+        std::cerr << "eb200 data socket getsockname error" << std::endl;
         return 1;
     }
 
@@ -153,7 +153,7 @@ int RundSConnector::open() {
     tv.tv_sec = 2;
     tv.tv_usec = 0;
     if (setsockopt(data_sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-        std::cerr << "setting data socket timeout failed\n";
+        std::cerr << "setting data socket timeout failed" << std::endl;
         return 1;
     }
 
@@ -169,7 +169,7 @@ int RundSConnector::send_command(std::string cmd) {
     int bytes_read = recv(control_sock, buf, 255, MSG_DONTWAIT);
     if (bytes_read > 0) {
         std::string response = std::string(buf, bytes_read);
-        std::cout << "command response: " << response << "\n";
+        std::cout << "command response: " << response << std::endl;
     }
     free(buf);
     return 0;
@@ -181,7 +181,7 @@ int RundSConnector::read() {
     } else if (data_mode == DataMode::SHORT) {
         return read<int16_t>();
     }
-    std::cerr << "unsupported data mode: " << data_mode << "\n";
+    std::cerr << "unsupported data mode: " << data_mode << std::endl;
     return 1;
 }
 
@@ -206,31 +206,31 @@ int RundSConnector::read() {
     }
 
     if (send_command("trace:udp:tag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + protocol->getTrace() + "\r\n") != 0) {
-        std::cerr << "registering trace failed\n";
+        std::cerr << "registering trace failed" << std::endl;
         return 1;
     }
 
     // send "PRIVATE" flag as a separate command since it isn't supported by all receiver types
     if (send_command("trace:udp:flag:on \"" + local_data_ip + "\"," + std::to_string(data_port) + ", \"PRIVATE\"\r\n") != 0) {
-        std::cerr << "registering trace flags failed\n";
+        std::cerr << "registering trace flags failed" << std::endl;
         return 1;
     }
 
     if (send_command("SYST:IF:REM:MODE " + protocol->getModeString() + "\r\n") != 0) {
-        std::cerr << "sending mode command failed\n";
+        std::cerr << "sending mode command failed" << std::endl;
         return 1;
     }
 
     while (run) {
         read = recvfrom(data_sock, buffer, get_buffer_size(), 0, (struct sockaddr*) &cliaddr, &len);
         if (read < 0) {
-            std::cerr << "ERROR: data socket read error; shutting down\n";
+            std::cerr << "ERROR: data socket read error; shutting down" << std::endl;
             run = false;
             break;
         }
 
         if (host_addr.s_addr != cliaddr.sin_addr.s_addr) {
-            std::cerr << "WARNING: discarding data coming from unexpected source (" << inet_ntoa(cliaddr.sin_addr) << ")\n";
+            std::cerr << "WARNING: discarding data coming from unexpected source (" << inet_ntoa(cliaddr.sin_addr) << ")" << std::endl;
             continue;
         }
 
@@ -243,12 +243,12 @@ int RundSConnector::read() {
     }
 
     if (send_command("trace:udp:tag:off \"" + local_data_ip + "\"," + std::to_string(data_port) + "," + protocol->getTrace() + "\r\n") != 0) {
-        std::cerr << "deregistering trace failed\n";
+        std::cerr << "deregistering trace failed" << std::endl;
         return 1;
     }
 
     if (send_command("trace:udp:delete \"" + local_data_ip + "\"," + std::to_string(data_port) + "\r\n") != 0) {
-        std::cerr << "deregistering trace failed\n";
+        std::cerr << "deregistering trace failed" << std::endl;
         return 1;
     }
 
@@ -260,12 +260,12 @@ int RundSConnector::read() {
 
 int RundSConnector::close() {
     if (::close(data_sock) < 0) {
-        std::cerr << "eb200 data socket close error\n";
+        std::cerr << "eb200 data socket close error" << std::endl;
         return 1;
     }
 
     if (::close(control_sock) < 0) {
-        std::cerr << "eb200 control socket close error\n";
+        std::cerr << "eb200 control socket close error" << std::endl;
         return 1;
     }
 
@@ -289,20 +289,20 @@ int RundSConnector::set_gain(Owrx::GainSpec* gain) {
     if ((simple_gain = dynamic_cast<Owrx::SimpleGainSpec*>(gain)) != nullptr) {
         int r = send_command("GCON:MODE FIX\r\n");
         if (r != 0) {
-            std::cerr << "setting gain mode failed\r\n";
+            std::cerr << "setting gain mode failed" << std::endl;
             return 1;
         }
 
         r = send_command("GCON " + std::to_string((int) simple_gain->getValue()) + "\r\n");
         if (r != 0) {
-            std::cerr << "setting gain failed\r\n";
+            std::cerr << "setting gain failed" << std::endl;
             return 1;
         }
 
         return 0;
     }
 
-    std::cerr << "unsupported gain settings\n";
+    std::cerr << "unsupported gain settings" << std::endl;
     return 100;
 };
 

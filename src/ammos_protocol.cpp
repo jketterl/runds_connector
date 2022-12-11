@@ -34,25 +34,25 @@ template <typename T>
 T* AmmosProtocol<T>::parse(char* raw, int len, uint32_t* parsed_len) {
     char* read_pointer = raw;
     if (len < sizeof(ammos_frame_header_t)) {
-        std::cerr << "WARNING: incomplete data\n";
+        std::cerr << "WARNING: incomplete data" << std::endl;
         return nullptr;
     }
 
     ammos_frame_header_t* ammos_frame_header = reinterpret_cast<ammos_frame_header_t*>(read_pointer);
     read_pointer += sizeof(ammos_frame_header_t);
     if (ntohl(ammos_frame_header->magic) != 0xfb746572) {
-        std::cerr << "WARNING: invalid magic word: " << std::hex << ammos_frame_header->magic << "\n";
+        std::cerr << "WARNING: invalid magic word: " << std::hex << ammos_frame_header->magic << std::endl;
         return nullptr;
     }
     if (ntohl(ammos_frame_header->frame_length) * 4 != len) {
-        std::cerr << "WARNING: data size mismatch\n";
+        std::cerr << "WARNING: data size mismatch" << std::endl;
         return nullptr;
     }
 
     uint32_t data_header_length = ntohl(ammos_frame_header->data_header_length) * sizeof(uint32_t);
     ammos_data_header_t* ammos_data_header = reinterpret_cast<ammos_data_header_t*>(read_pointer);
     if (ntohl(ammos_data_header->data_block_count) != 1) {
-        std::cerr << "WARNING: unexpected number of ammos data blocks\n";
+        std::cerr << "WARNING: unexpected number of ammos data blocks" << std::endl;
     }
     read_pointer += data_header_length;
 
