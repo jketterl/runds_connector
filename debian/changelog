@@ -1,3 +1,9 @@
+runds-connector (0.2.3) bullseye jammy; urgency=low
+
+  * New build for csdr 0.18.2
+
+ -- Jakob Ketterl <jakob.ketterl@gmx.de>  Mon, 09 Oct 2023 00:12:00 +0000
+
 runds-connector (0.2.2) bullseye jammy; urgency=low
 
   * New build for csdr 0.18.1
